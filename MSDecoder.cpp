@@ -260,95 +260,17 @@ double MSDecoder::decode(const std::vector<double>& chromosome) {
       }
     }
   }
-  /*
-  vector<pair<int, int>> delays = vector<pair<int, int>>();
-
-  for (auto k : terminals)
-    if (delayPaths[k] <= paramDelay)
-      delays.push_back(make_pair(k, delayPaths[k]));
-  sort(delays.begin(), delays.end(), sortbysec);
-
-  for (auto p : delays) {
-    
-  }
-  
-  //for (auto k : terminals)
-    //if (notAttended[k]) cout << k << endl;
-  //getchar();
- 
-  int lessThanAvg = 0, greaterThanAvg = 0;
-  double auxMetric;
-  vector<double> minMetric = vector<double>(3, numeric_limits<int>::max());
-  //Delay = paramDelay, minJitter = paramJitter, minVar = paramVariation;
-  for (auto k : terminals) {
-    if (delayPaths[k] > paramDelay) {
-      auxMetric = double(delayPaths[k] - paramDelay) / paramDelay;
-      if (auxMetric < minMetric[0])
-	minMetric[0] = auxMetric;
-    }
-    if (jitterPaths[k] > paramJitter) {
-      auxMetric = double(jitterPaths[k] - paramJitter) / paramJitter;
-      if (auxMetric < minMetric[1])
-	minMetric[1] = auxMetric;
-    }
-    
-    if (k != selected) {
-      if (delayPaths[k] < (delayPaths[selected] - paramVariation) ||
-	  delayPaths[k] > (delayPaths[selected] + paramVariation) ||
-	  delayPaths[k] > paramDelay || jitterPaths[k] > paramJitter) notAttended[k] = true;
-      else notAttended[k] = false;
-
-      if (!notAttended[k]) {
-	if (delayPaths[k] <= delayPaths[selected]) lessThanAvg++;
-	else greaterThanAvg++;
-      }
-    }
-  }
-  
-  for (auto k : terminals) {
-    for (auto l : terminals)
-      if (k != l) 
-	if (abs(delayPaths[k] - delayPaths[l]) > paramVariation) {
-	  auxMetric = double(abs(delayPaths[k] - delayPaths[l]) - paramVariation) / paramVariation;
-	  if (auxMetric < minMetric[2])
-	    minMetric[2] = auxMetric;
-	}
-
-    if (k != selected && !notAttended[k]) {
-      for (auto l : terminals) {
-	if (l != k && l != selected && !notAttended[l]) {
-	  if (delayPaths[k] - delayPaths[l] > paramVariation) {
-	    if (lessThanAvg < greaterThanAvg) {
-	      if (delayPaths[k] < delayPaths[selected]) {
-		notAttended[k] = true;
-		break;
-	      } else notAttended[l] = true;
-	    } else {
-	      if (delayPaths[k] > delayPaths[selected]) {
-		notAttended[k] = true;
-		break;
-	      } else notAttended[l] = true;
-	    }
-	  }
-	}
-      }
-    }
-  }
-
-  count = 0;
-  for (auto t : terminals) 
-    if (notAttended[t]) count++;
-  */
 
   vector<int> delays = vector<int>();  
   double auxMetric;
   vector<double> minMetric = vector<double>(3, numeric_limits<int>::max());
+
   for (auto k : terminals) {
     if (delayPaths[k] > paramDelay) {
       auxMetric = double(delayPaths[k] - paramDelay) / paramDelay;
       if (auxMetric < minMetric[0])
 	minMetric[0] = auxMetric;
-    } else delays.push_back(delayPaths[k]);
+    } else if (jitterPaths[k] <= paramJitter) delays.push_back(delayPaths[k]);
  
     if (jitterPaths[k] > paramJitter) {
       auxMetric = double(jitterPaths[k] - paramJitter) / paramJitter;
