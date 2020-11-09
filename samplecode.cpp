@@ -10,11 +10,11 @@ int main(int argc, char* argv[]) {
   const double pm = 0.10;		// fraction of population to be replaced by mutants
   const double rhoe = 0.70;	// probability that offspring inherit an allele from elite parent
   const unsigned K = 3;		// number of independent populations
-  const unsigned MAXT = 2;	// number of threads for parallel decoding
+  const unsigned MAXT = 4;	// number of threads for parallel decoding
 
   MSDecoder decoder;			// initialize the decoder
   decoder.loadInstance(argv[1], argv[2]); // Load the instance
-  decoder.loadBias(argv[4], false);
+  decoder.loadBias(argv[4], true);
   srand(time(NULL));
   const unsigned n = decoder.getM();		// size of chromosomes
   const long unsigned rngSeed = 0; //int(random() % 10);	// seed to the random number generator

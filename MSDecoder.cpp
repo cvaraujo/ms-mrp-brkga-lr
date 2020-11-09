@@ -303,7 +303,7 @@ double MSDecoder::decode(const std::vector<double>& chromosome) {
   
   if (count < incumbent){
     incumbent = count;
-    //    cout << "Value: " << (count*s) + alpha << ", FO: " << incumbent << endl;
+    cout << "Value: " << (count*s) + alpha << ", FO: " << incumbent << endl;
     /*
     ofstream file;
     file.open("solution.sol");
@@ -369,7 +369,7 @@ void MSDecoder::loadBias(string instance, bool ls) {
       }      
     }
   }
-  cout << "After load" << endl;
+
   int ed = 0;
   double bias;
   for (i = 0; i < n; i++) {
