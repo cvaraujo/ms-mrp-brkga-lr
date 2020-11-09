@@ -1,0 +1,65 @@
+Nodes: 11
+Arcs: 18
+MVE: 4
+MAE: 0
+SAE: 30
+Terminals_rem: 1
+Nodes_rem: 5
+Arcs_rem: 4
+First LB: 0
+LB: 0
+Iter. LB: 0
+First UB: 2
+UB: 2
+Iter. UB: 0
+gap: 100
+BM. Time: 0
+Runtime: 4
+FL 0 8 999
+FL 0 10 0
+FL 0 4 0
+FL 0 1 0
+FL 0 6 0
+FL 0 3 999
+FL 0 5 999
+FL 0 7 999
+FL 0 9 999
+FL 1 2 0
+FL 1 4 0
+FL 1 10 0
+FL 2 1 1000
+FL 2 4 999
+FL 2 10 999
+FL 2 0 1000
+FL 4 1 1
+FL 4 2 1
+FL 4 6 999
+FL 4 10 1
+FL 6 4 1
+FL 10 1 1
+FL 10 2 1
+FL 10 4 2
+FU 0 8 1000
+FU 0 10 2
+FU 0 4 2
+FU 0 1 1000
+FU 0 6 3
+FU 0 3 1000
+FU 0 5 1000
+FU 0 7 1000
+FU 0 9 1000
+FU 1 2 0
+FU 1 4 0
+FU 1 10 0
+FU 2 1 0
+FU 2 4 998
+FU 2 10 998
+FU 2 0 1000
+FU 4 1 0
+FU 4 2 0
+FU 4 6 997
+FU 4 10 0
+FU 6 4 0
+FU 10 1 0
+FU 10 2 0
+FU 10 4 0
