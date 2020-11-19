@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
 
   MSDecoder decoder;			// initialize the decoder
   decoder.loadInstance(argv[1], argv[2]); // Load the instance
-  decoder.loadBias(argv[4], true);
+  decoder.loadBias(argv[4], false);
   srand(time(NULL));
   const unsigned n = decoder.getM();		// size of chromosomes
   const long unsigned rngSeed = 0; //int(random() % 10);	// seed to the random number generator
