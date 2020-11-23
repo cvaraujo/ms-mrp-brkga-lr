@@ -15,8 +15,6 @@ set(SOURCE_FILES
 	Population.h
 	MTRand.h
 	SampleDecoder.h
-	SampleDecoder.cpp
-	samplecode.cpp
-	MSDecoder.cpp main.cpp)
+	MSDecoder.cpp)
 
 add_executable(MSbrkga ${SOURCE_FILES})
