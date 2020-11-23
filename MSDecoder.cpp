@@ -281,11 +281,11 @@ double MSDecoder::decode(const std::vector<double> &chromosome) {
       if (auxMetric < minMetric[1]) minMetric[1] = auxMetric;
     }
 
-    for (auto l : terminals) {
-      if (l != k && abs(delayPaths[k] - delayPaths[l]) > paramVariation) {
-	auxMetric = double(abs(delayPaths[k] - delayPaths[l])) / paramVariation;
-	if (auxMetric < minMetric[2]) minMetric[2] = auxMetric;
-      }
+     for (auto l : terminals) {
+       if (l != k && abs(delayPaths[k] - delayPaths[l]) > paramVariation) {
+     	auxMetric = double(abs(delayPaths[k] - delayPaths[l])) / paramVariation;
+     	if (auxMetric < minMetric[2]) minMetric[2] = auxMetric;
+       }
     }
   }
 
@@ -307,7 +307,7 @@ double MSDecoder::decode(const std::vector<double> &chromosome) {
 
   if (count < incumbent) {
     incumbent = count;
-    cout << "Value: " << (count * s) + alpha << ", FO: " << incumbent << endl;
+    cout << "Value: " << alpha << ", " << (count * s) + alpha << ", FO: " << incumbent << endl;
 
     ofstream file;
     file.open("solution.sol");
@@ -316,7 +316,7 @@ double MSDecoder::decode(const std::vector<double> &chromosome) {
     }
     file.close();
   }
-  return ((count * s) + alpha);
+  return (double(count * s) + alpha);
 }
 
 int MSDecoder::getM() const {

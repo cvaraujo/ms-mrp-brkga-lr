@@ -5,7 +5,7 @@
 #include <chrono>
 
 int main(int argc, char* argv[]) {
-  const unsigned p = 500;	// size of population
+  const unsigned p = 1500;	// size of population
   const double pe = 0.20;		// fraction of population to be the elite-set
   const double pm = 0.10;		// fraction of population to be replaced by mutants
   const double rhoe = 0.70;	// probability that offspring inherit an allele from elite parent
@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
 
   MSDecoder decoder;			// initialize the decoder
   decoder.loadInstance(argv[1], argv[2]); // Load the instance
-  decoder.loadBias(argv[4], false);
+  decoder.loadBias(argv[4], true);
   srand(time(NULL));
   const unsigned n = decoder.getM();		// size of chromosomes
   const long unsigned rngSeed = 0; //int(random() % 10);	// seed to the random number generator
@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     if((++generation) % X_INTVL == 0) {
       algorithm.exchangeElite(X_NUMBER);	// exchange top individuals
     }
-    cout << algorithm.getBestFitness() << " -> " << decoder.getIncumbent() << endl;
+    //cout << algorithm.getBestFitness() << " -> " << decoder.getIncumbent() << endl;
     //    getchar();
     end = chrono::steady_clock::now();
     runtime = chrono::duration_cast<chrono::seconds>(end - start).count();
