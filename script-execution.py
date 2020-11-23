@@ -19,7 +19,7 @@ for f in folders:
 		for inst in instance:
 			if (inst[0] == 'w' or inst[0] == '1'):
 				for alg in algorithms:
-					commands.append("./MSbrkga " + path + "/" + inst + " " + path + "/param-" + inst + " results_" + alg + "/result_" + inst)
+					commands.append("./MSbrkga " + path + "/" + inst + " " + path + "/param-" + inst + " results_" + alg + "/result_" + inst + " lr-freq/result_" + inst)
 
 f = '200'
 for i in range(125, 375, 25):
@@ -28,7 +28,7 @@ for i in range(125, 375, 25):
 	for inst in instance:
 		if (inst[0] == 'w' or inst[0] == '1'):
 			for alg in algorithms:
-				commands.append("./MSbrkga " + path + "/" + inst + " " + path + "/param-" + inst + " results_" + alg + "/result_" + inst)
+				commands.append("./MSbrkga " + path + "/" + inst + " " + path + "/param-" + inst + " results_" + alg + "/result_" + inst + " lr-freq/result_" + inst)
 
 for c in commands:
    print(c)
