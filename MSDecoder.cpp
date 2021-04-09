@@ -23,11 +23,11 @@ void MSDecoder::loadInstance(string instance, string param) {
     if (token == "Delay") {
       fileParam >> token;
       if (token == "variation") {
-	fileParam >> token >> paramVariationToken;
-	paramVariation = int(1e5 * paramVariationToken);
+        fileParam >> token >> paramVariationToken;
+        paramVariation = int(1e5 * paramVariationToken);
       } else {
-	fileParam >> paramDelayToken;
-	paramDelay = int(1e5 * paramDelayToken);
+        fileParam >> paramDelayToken;
+        paramDelay = int(1e5 * paramDelayToken);
       }
     }
     if (token == "Jitter") {
@@ -59,10 +59,10 @@ void MSDecoder::loadInstance(string instance, string param) {
       fileBoostGraph >> u >> v >> delay >> jitter >> bandwidth >> ldp;
       u--, v--;
       if (bandwidth >= paramBandwidth) {
-	delayInt = int(1e5 * delay), jitterInt = int(1e6 * jitter);
-	arcs[u].push_back(Arc(v, delayInt, jitterInt));
-	costs[u][v] = costs[v][u] = make_pair(delayInt, jitterInt);
-	add_edge(u, v, 1.0, auxGraph);
+        delayInt = int(1e5 * delay), jitterInt = int(1e6 * jitter);
+        arcs[u].push_back(Arc(v, delayInt, jitterInt));
+        costs[u][v] = costs[v][u] = make_pair(delayInt, jitterInt);
+        add_edge(u, v, 1.0, auxGraph);
       }
     }
     if (token == "Root") fileBoostGraph >> root, root--;
@@ -73,8 +73,8 @@ void MSDecoder::loadInstance(string instance, string param) {
   vector<int> distanceDelay = vector<int>(n);
 
   dijkstra_shortest_paths(auxGraph, root, predecessor_map(
-							  make_iterator_property_map(predecessors.begin(), get(vertex_index, auxGraph))).distance_map(
-																		      make_iterator_property_map(distanceDelay.begin(), get(vertex_index, auxGraph))));
+                                                          make_iterator_property_map(predecessors.begin(), get(vertex_index, auxGraph))).distance_map(
+                                                                                                                                                      make_iterator_property_map(distanceDelay.begin(), get(vertex_index, auxGraph))));
 
   bool isTerminal;
   for (int i = 0; i < n; ++i) {
@@ -83,13 +83,13 @@ void MSDecoder::loadInstance(string instance, string param) {
     } else {
       isTerminal = false;
       if (i != root) {
-	for (auto t : terminals) {
-	  if (i == t) {
-	    isTerminal = true;
-	    break;
-	  }
-	}
-	if (!isTerminal) nonTerminals.push_back(i), DuS.push_back(i);
+        for (auto t : terminals) {
+          if (i == t) {
+            isTerminal = true;
+            break;
+          }
+        }
+        if (!isTerminal) nonTerminals.push_back(i), DuS.push_back(i);
       }
     }
   }
@@ -102,8 +102,8 @@ void MSDecoder::loadInstance(string instance, string param) {
   for (int i = 0; i < n; i++) {
     if (!removed[i]) {
       for (auto arc : arcs[i]) {
-	if (!removed[arc.j])
-	  add_edge(i, arc.j, 0.0, graph);
+        if (!removed[arc.j])
+          add_edge(i, arc.j, 0.0, graph);
       }
     }
   }
@@ -135,10 +135,10 @@ double MSDecoder::decode(const std::vector<double> &chromosome) {
   for (int i = 0; i < n; i++) {
     if (!removed[i])
       for (auto e : arcs[i]) {
-	if (!removed[e.j]) {
-	  tie(ed, found) = edge(i, e.j, graph);
-	  if (found) boost::put(edge_weight_t(), graph, ed, -chromosome[edNum++]);
-	}
+        if (!removed[e.j]) {
+          tie(ed, found) = edge(i, e.j, graph);
+          if (found) boost::put(edge_weight_t(), graph, ed, -chromosome[edNum++]);
+        }
       }
   }
   // Compute the MST
@@ -155,15 +155,15 @@ double MSDecoder::decode(const std::vector<double> &chromosome) {
   }
 
   dijkstra_shortest_paths(paths, root, predecessor_map(
-						       make_iterator_property_map(predecessors.begin(), get(vertex_index, paths))).distance_map(
-																		make_iterator_property_map(distance.begin(), get(vertex_index, paths))));
+                                                       make_iterator_property_map(predecessors.begin(), get(vertex_index, paths))).distance_map(
+                                                                                                                                                make_iterator_property_map(distance.begin(), get(vertex_index, paths))));
 
   obj = 0;
   for (auto k : DuS) {
     actual = k, jitter = 0, delay = 0;
     while (actual != root) {
       jitter += costs[predecessors[actual]][actual].second,
-	delay += costs[predecessors[actual]][actual].first;
+        delay += costs[predecessors[actual]][actual].first;
       actual = predecessors[actual];
     }
     delayPaths[k] = delay, jitterPaths[k] = jitter;
@@ -190,133 +190,151 @@ double MSDecoder::decode(const std::vector<double> &chromosome) {
     // get the values of this path
     for (auto k : terminals) {
       if (k != selected) {
-	bestCand = -1, delay = paramDelay + 1, jitter = paramJitter + 1;
-	
-	if (delayPaths[k] < (delayPaths[selected] - paramVariation) ||
-	    delayPaths[k] > (delayPaths[selected] + paramVariation)) {
+        bestCand = -1, delay = paramDelay + 1, jitter = paramJitter + 1;
 
-	  for (auto arc : arcs[k]) {
-	    i = arc.j;
-	    // Get the first candidate to move
-	    if (i != predecessors[k] && k != predecessors[i]) {
-	      if (delayPaths[i] + arc.delay >= (delayPaths[selected] - paramVariation) &&
-		  delayPaths[i] + arc.delay <= (delayPaths[selected] + paramVariation) &&
-		  delayPaths[i] + arc.delay <= paramDelay &&
-		  jitterPaths[i] + arc.jitter <= paramJitter) {
+        if (delayPaths[k] < (delayPaths[selected] - paramVariation) ||
+            delayPaths[k] > (delayPaths[selected] + paramVariation)) {
 
-		bestCand = i;
-		delay = delayPaths[i] + arc.delay;
-		jitter = jitterPaths[i] + arc.jitter;
-		break;
-	      }
-	    }
-	  }
+          for (auto arc : arcs[k]) {
+            i = arc.j;
+            // Get the first candidate to move
+            if (i != predecessors[k] && k != predecessors[i]) {
+              if (delayPaths[i] + arc.delay >= (delayPaths[selected] - paramVariation) &&
+                  delayPaths[i] + arc.delay <= (delayPaths[selected] + paramVariation) &&
+                  delayPaths[i] + arc.delay <= paramDelay &&
+                  jitterPaths[i] + arc.jitter <= paramJitter) {
 
-	  if (bestCand != -1) {
-	    // create the temporary vectors
-	    canMove = true;
-	    losts = 0;
-	    notAttended[k] = false;
-	    vector<vector<int>> sub = vector<vector<int>>(n, vector<int>());
-	    for (i = 0; i < n; i++) {
-	      delayPathAux[i] = delayPaths[i], jitterPathAux[i] = jitterPaths[i];
-	      predecessorsAux[i] = predecessors[i], notAttendedAux[i] = notAttended[i];
-	      sub[predecessors[i]].push_back(i);
-	    }
+                bestCand = i;
+                delay = delayPaths[i] + arc.delay;
+                jitter = jitterPaths[i] + arc.jitter;
+                break;
+              }
+            }
+          }
 
-	    // Evaluate the move
-	    diffDelay = delay - delayPathAux[k], diffJitter = jitter - jitterPathAux[k];
-	    predecessorsAux[k] = bestCand;
-	    delayPathAux[k] = delay, jitterPathAux[k] = jitter;
+          if (bestCand != -1) {
+            // create the temporary vectors
+            canMove = true;
+            losts = 0;
+            notAttended[k] = false;
+            vector<vector<int>> sub = vector<vector<int>>(n, vector<int>());
+            for (i = 0; i < n; i++) {
+              delayPathAux[i] = delayPaths[i], jitterPathAux[i] = jitterPaths[i];
+              predecessorsAux[i] = predecessors[i], notAttendedAux[i] = notAttended[i];
+              sub[predecessors[i]].push_back(i);
+            }
 
-	    changed.erase(changed.begin(), changed.end());
-	    changed.push_back(k);
+            // Evaluate the move
+            diffDelay = delay - delayPathAux[k], diffJitter = jitter - jitterPathAux[k];
+            predecessorsAux[k] = bestCand;
+            delayPathAux[k] = delay, jitterPathAux[k] = jitter;
 
-	    while (!changed.empty()) {
-	      actual = changed.back();
-	      changed.pop_back();
+            changed.erase(changed.begin(), changed.end());
+            changed.push_back(k);
 
-	      for (auto j : sub[actual]) {
-		delayPathAux[j] += diffDelay, jitterPathAux[j] += diffJitter;
-		if (delayPathAux[j] > paramDelay || jitterPathAux[j] > paramJitter/* ||
-		    delayPathAux[j] < (delayPathAux[selected] - paramVariation) ||
-		    delayPathAux[j] > (delayPathAux[selected] + paramVariation)*/) {
-		  if (!notAttendedAux[j]) {
-		    notAttendedAux[j] = true;
-		    losts++;
-		  }
-		} else notAttendedAux[j] = false;
-		if (losts >= 2) {
-		  canMove = false;
-		  changed.erase(changed.begin(), changed.end());
-		  break;
-		} else changed.push_back(j);
-	      }
-	    }
-	    if (canMove) {
-	      for (i = 0; i < n; i++) {
-		delayPaths[i] = delayPathAux[i], jitterPaths[i] = jitterPathAux[i],
-		  predecessors[i] = predecessorsAux[i], notAttended[i] = notAttendedAux[i];
-	      }
-	    }
-	  }
-	}
+            while (!changed.empty()) {
+              actual = changed.back();
+              changed.pop_back();
+
+              for (auto j : sub[actual]) {
+                delayPathAux[j] += diffDelay, jitterPathAux[j] += diffJitter;
+                if (delayPathAux[j] > paramDelay || jitterPathAux[j] > paramJitter) {
+                  if (!notAttendedAux[j]) {
+                    auto it = find(terminals.begin(), terminals.end(), j);
+                    if (it != terminals.end()) {
+                      notAttendedAux[j] = true;
+                      losts++;
+                    }
+                  }
+                } else notAttendedAux[j] = false;
+                if (losts >= 2) {
+                  canMove = false;
+                  changed.erase(changed.begin(), changed.end());
+                  break;
+                } else changed.push_back(j);
+              }
+            }
+            if (canMove) {
+              for (i = 0; i < n; i++) {
+                delayPaths[i] = delayPathAux[i], jitterPaths[i] = jitterPathAux[i],
+                  predecessors[i] = predecessorsAux[i], notAttended[i] = notAttendedAux[i];
+              }
+            }
+          }
+        }
       }
     }
   }
-  // Remover busca local e aplicar so no conjunto elite
 
-  vector<int> delays = vector<int>();
+  // Remover busca local e aplicar so no conjunto elite
+  vector<int> delays = vector<int>();  
   double auxMetric;
   vector<double> minMetric = vector<double>(3, numeric_limits<int>::max());
 
   for (auto k : terminals) {
     if (delayPaths[k] > paramDelay) {
+      notAttended[k] = true;
       auxMetric = double(delayPaths[k] - paramDelay) / paramDelay;
-      if (auxMetric < minMetric[0]) minMetric[0] = auxMetric;
-    } else if (jitterPaths[k] <= paramJitter) delays.push_back(delayPaths[k]);
-
+      if (auxMetric < minMetric[0])
+        minMetric[0] = auxMetric;
+    } else if (jitterPaths[k] <= paramJitter) {
+      notAttended[k] = false;
+      delays.push_back(delayPaths[k]);
+    }
+ 
     if (jitterPaths[k] > paramJitter) {
+      notAttended[k] = true;
       auxMetric = double(jitterPaths[k] - paramJitter) / paramJitter;
       if (auxMetric < minMetric[1]) minMetric[1] = auxMetric;
-    }
-
-     for (auto l : terminals) {
-       if (l != k && abs(delayPaths[k] - delayPaths[l]) > paramVariation) {
-     	auxMetric = double(abs(delayPaths[k] - delayPaths[l])) / paramVariation;
-     	if (auxMetric < minMetric[2]) minMetric[2] = auxMetric;
-       }
     }
   }
 
   sort(delays.begin(), delays.end());
-
-  int actMax = 0, p2 = 0, maxi = 0, fd;
+  int actMax = 0, p2 = 0, maxi = 0, fd, larggest = 0, smallest = 0;
   for (i = 0; i < delays.size(); i++) {
     fd = delays[i];
-
+    
     while (delays[p2] <= fd + paramVariation && p2 < delays.size()) p2++;
 
-    if ((p2 - i) > maxi) maxi = (p2 - i);
+    if ((p2-i) > maxi) {
+      maxi = (p2-i);
+      larggest = delays[p2];
+      smallest = delays[i];
+    }
+  }
+
+  int penalty = 0, toUse = 0;
+  for (auto k : terminals) {
+    toUse = -1;
+    if (delayPaths[k] < smallest) toUse = smallest - delayPaths[k];
+    else if (delayPaths[k] > larggest) toUse = delayPaths[k] - larggest;
+
+    if (toUse > paramVariation) {
+      auxMetric = double(toUse - paramVariation) / paramVariation;
+      if (auxMetric < minMetric[2]) minMetric[2] = auxMetric;
+    }
   }
 
   int s = terminals.size();
 
   count = s - maxi;
+
   alpha = *min_element(minMetric.begin(), minMetric.end());
 
-  if (count < incumbent) {
+  if (count < incumbent){
+    cout << "Delay: " << minMetric[0] << ", Jitter: " << minMetric[1] << ", Variacao: " << minMetric[2] << endl;
     incumbent = count;
-    cout << "Value: " << alpha << ", " << (count * s) + alpha << ", FO: " << incumbent << endl;
-
-    ofstream file;
-    file.open("solution.sol");
-    for (i = 0; i < n; i++) {
+    cout << "Value: " << (count*s) + alpha << ", FO: " << incumbent << endl;
+    /*
+      ofstream file;
+      file.open("solution.sol");
+      for (i = 0; i < n; i++) {
       file << predecessors[i] << " " << i << endl;
-    }
-    file.close();
+      }
+      file.close();*/
   }
-  return (double(count * s) + alpha);
+
+  return ((count * s) + alpha);
 }
 
 int MSDecoder::getM() const {
@@ -346,29 +364,29 @@ void MSDecoder::loadBias(string instance, bool ls) {
     if (ls) {
       if (token == "FU") {
 
-	file >> orig >> dest >> key;
+        file >> orig >> dest >> key;
 
-	freq = stoi(key);
+        freq = stoi(key);
 
-	if (freq < les) les = freq;
-	else if (freq > big) big = freq;
+        if (freq < les) les = freq;
+        else if (freq > big) big = freq;
 
-	i = stoi(orig) - 1;
-	j = stoi(dest) - 1;
-	if (i != -1 && j != -1) edges[i][j] = freq;
+        i = stoi(orig) - 1;
+        j = stoi(dest) - 1;
+        if (i != -1 && j != -1) edges[i][j] = freq;
       }
     } else {
       if (token == "FL") {
-	file >> orig >> dest >> key;
+        file >> orig >> dest >> key;
 
-	freq = stoi(key);
+        freq = stoi(key);
 
-	if (freq < les) les = freq;
-	else if (freq > big) big = freq;
+        if (freq < les) les = freq;
+        else if (freq > big) big = freq;
 
-	i = stoi(orig) - 1;
-	j = stoi(dest) - 1;
-	if (i != -1 && j != -1) edges[i][j] = freq;
+        i = stoi(orig) - 1;
+        j = stoi(dest) - 1;
+        if (i != -1 && j != -1) edges[i][j] = freq;
       }
     }
   }
