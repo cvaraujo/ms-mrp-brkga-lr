@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(MSbrkga)
 
-include_directories(/opt/boost_1_73_0)
+include_directories(/opt/boost_1_79_0)
 
-link_directories(/opt/boost_1_73_0)
+link_directories(/opt/boost_1_79_0)
 
 set(CMAKE_CXX_STANDARD 11)
 

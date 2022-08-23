@@ -26,16 +26,18 @@
 using namespace boost;
 using namespace std;
 
-struct Arc {
-Arc(int dest, int del, int jit) : j(dest), delay(del), jitter(jit) {}
+struct Arc
+{
+  Arc(int dest, int del, int jit) : j(dest), delay(del), jitter(jit) {}
   // Destine vertex, delay and jitter of the edge
   int j, delay, jitter;
 };
 
-class MSDecoder {
+class MSDecoder
+{
 
 public:
-  typedef adjacency_list< vecS, vecS, undirectedS, property<vertex_index_t, int>, property<edge_weight_t, double>>  BoostGraph;
+  typedef adjacency_list<vecS, vecS, undirectedS, property<vertex_index_t, int>, property<edge_weight_t, double>> BoostGraph;
   typedef graph_traits<BoostGraph>::edge_descriptor Edge;
   typedef graph_traits<BoostGraph>::vertex_descriptor Vertex;
   property_map<BoostGraph, edge_weight_t>::type weightmap;
@@ -51,12 +53,12 @@ public:
   vector<int> DuS = vector<int>();
   vector<bool> removed;
   vector<double> mapping;
-    
+
   MSDecoder();
-  
+
   ~MSDecoder();
 
-  void loadInstance(string instance, string param);
+  void loadInstance(string instance, string param, string preprocessing);
 
   int getN() const;
 
@@ -64,9 +66,9 @@ public:
 
   int getIncumbent() const;
 
-  double decode(const std::vector<double>& chromosome);
+  double decode(const std::vector<double> &chromosome);
 
-  int decodeFinal(const std::vector<double>& chromosome);
+  int decodeFinal(const std::vector<double> &chromosome);
 
   void loadBias(string instance, bool ls);
 
