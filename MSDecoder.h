@@ -11,6 +11,7 @@
 #include <boost/property_map/property_map.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/config.hpp>
+#include "edmonds_optimum_branching.hpp"
 
 #include <vector>
 #include <iostream>
@@ -18,10 +19,9 @@
 #include <bits/ios_base.h>
 #include <algorithm>
 #include <fstream>
-
-//#ifdef BOOST_MSVC
-//#  pragma warning(disable: 4267)
-//#endif
+#include <string>
+#include <sstream>
+#include <map>
 
 using namespace boost;
 using namespace std;
@@ -37,7 +37,7 @@ class MSDecoder
 {
 
 public:
-  typedef adjacency_list<vecS, vecS, undirectedS, property<vertex_index_t, int>, property<edge_weight_t, double>> BoostGraph;
+  typedef adjacency_list<vecS, vecS, directedS, property<vertex_index_t, int>, property<edge_weight_t, double>> BoostGraph;
   typedef graph_traits<BoostGraph>::edge_descriptor Edge;
   typedef graph_traits<BoostGraph>::vertex_descriptor Vertex;
   property_map<BoostGraph, edge_weight_t>::type weightmap;
@@ -45,14 +45,15 @@ public:
 
   int n, m, root, paramDelay, paramJitter, paramVariation, paramBandwidth;
   int incumbent;
-  BoostGraph graph;
+  // BoostGraph graph;
   vector<vector<Arc>> arcs;
   vector<vector<pair<int, int>>> costs;
-  vector<int> terminals = vector<int>();
-  vector<int> nonTerminals = vector<int>();
-  vector<int> DuS = vector<int>();
-  vector<bool> removed;
+  vector<int> terminals = vector<int>(), nonTerminals = vector<int>(), DuS = vector<int>();
+  vector<bool> removeNodes;
+  vector<vector<bool>> removeArcs;
   vector<double> mapping;
+  map<string, double> visitedArbs;
+  float localSearchChance = 0.2;
 
   MSDecoder();
 
@@ -73,6 +74,8 @@ public:
   void loadBias(string instance, bool ls);
 
   double getBias(int i) const;
+
+  double already_computed();
 };
 
 #endif

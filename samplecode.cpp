@@ -6,16 +6,16 @@
 
 int main(int argc, char *argv[])
 {
-  const unsigned p = 300;   // size of population
+  const unsigned p = 100;   // size of population
   const double pe = 0.10;   // fraction of population to be the elite-set
   const double pm = 0.10;   // fraction of population to be replaced by mutants
   const double rhoe = 0.60; // probability that offspring inherit an allele from elite parent
   const unsigned K = 2;     // number of independent populations
-  const unsigned MAXT = 6;  // number of threads for parallel decoding
+  const unsigned MAXT = 3;  // number of threads for parallel decoding
 
   MSDecoder decoder;                               // initialize the decoder
   decoder.loadInstance(argv[1], argv[2], argv[3]); // Load the instance
-  // decoder.loadBias(argv[4], false);
+  decoder.loadBias(argv[4], false);
   srand(time(NULL));
   const unsigned n = decoder.getM();        // size of chromosomes
   const long unsigned rngSeed = time(NULL); // seed to the random number generator

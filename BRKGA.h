@@ -320,7 +320,7 @@ inline void BRKGA<Decoder, RNG>::initialize(const unsigned i)
 	{
 		for (unsigned k = 0; k < n; ++k)
 		{
-			(*current[i])(j, k) = (refRNG.rand()); //+ refDecoder.getBias(k))/2;
+			(*current[i])(j, k) = (refRNG.rand() + refDecoder.getBias(k)) / 2;
 		}
 	}
 
