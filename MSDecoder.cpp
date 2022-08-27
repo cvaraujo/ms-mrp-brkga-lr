@@ -88,7 +88,7 @@ void MSDecoder::loadInstance(string instance, string param, string preprocessing
     if (token == "E")
     {
       fileBoostGraph >> u >> v >> delay >> jitter >> bandwidth >> ldp;
-      if (removeNodes[u] || removeNodes[v] || bandwidth < paramBandwidth || removeArcs[u][v])
+      if (removeNodes[u] || removeNodes[v] || bandwidth < paramBandwidth)
       {
         m--;
         continue;
@@ -96,16 +96,24 @@ void MSDecoder::loadInstance(string instance, string param, string preprocessing
       else
       {
         delayInt = int(1e5 * delay), jitterInt = int(1e6 * jitter);
-        arcs[u].push_back(Arc(v, delayInt, jitterInt));
-        costs[u][v] = costs[v][u] = make_pair(delayInt, jitterInt);
+        if (!removeArcs[u][v])
+        {
+          arcs[u].push_back(Arc(v, delayInt, jitterInt));
+          costs[u][v] = make_pair(delayInt, jitterInt);
+        }
+        if (!removeArcs[v][u])
+        {
+          arcs[v].push_back(Arc(u, delayInt, jitterInt));
+          costs[v][u] = make_pair(delayInt, jitterInt);
+        }
       }
     }
     if (token == "Root")
     {
       fileBoostGraph >> root;
       // Update artificial node
-      arcs[root].push_back(Arc(0, paramDelay + 1, paramJitter + 1));
-      costs[root][0] = make_pair(paramDelay + 1, paramJitter + 1);
+      arcs[root].push_back(Arc(0, 1, 1));
+      costs[root][0] = make_pair(1, 1);
     }
     if (token == "T")
       fileBoostGraph >> u, terminals.push_back(u), DuS.push_back(u);
@@ -116,8 +124,8 @@ void MSDecoder::loadInstance(string instance, string param, string preprocessing
     if (i != root)
     {
       // Update artificial arcs
-      arcs[0].push_back(Arc(i, paramDelay + 1, paramJitter + 1));
-      costs[0][i] = make_pair(paramDelay + 1, paramJitter + 1);
+      arcs[0].push_back(Arc(i, paramDelay, paramJitter));
+      costs[0][i] = make_pair(paramDelay, paramJitter);
       // Setting the non-terminal nodes
       if (find(terminals.begin(), terminals.end(), i) == terminals.end())
       {
@@ -197,101 +205,103 @@ double MSDecoder::decode(const std::vector<double> &chromosome)
       notAttended[k] = true, obj++;
   }
 
-  // Select the pivot terminal
-  random_shuffle(terminals.begin(), terminals.end());
-  int diffDelay, diffJitter, losts, minSelectedDelay = numeric_limits<int>::max(), selected = -1;
-  bool canMove;
-
-  for (auto k : terminals)
-    if (!notAttended[k] && delayPaths[k] < minSelectedDelay)
-      selected = k, minSelectedDelay = delayPaths[k];
-
-  // Local Search procedure
-  if (selected != -1 && float(rand() / RAND_MAX) < localSearchChance)
+  if (float(rand() / RAND_MAX) < localSearchChance)
   {
-    vector<int> changed, delayPathAux = vector<int>(n),
-                         jitterPathAux = vector<int>(n),
-                         predecessorsAux = vector<int>(n);
-    vector<bool> notAttendedAux = vector<bool>(n);
-    vector<vector<int>> sub;
+    // Select the pivot terminal
+    random_shuffle(terminals.begin(), terminals.end());
+    int diffDelay, diffJitter, losts, minSelectedDelay = numeric_limits<int>::max(), selected = -1;
+    bool canMove;
 
-    // get the values of this path
     for (auto k : terminals)
+      if (!notAttended[k] && delayPaths[k] < minSelectedDelay)
+        selected = k, minSelectedDelay = delayPaths[k];
+
+    // Local Search procedure
+    if (selected != -1)
     {
-      if (k != selected)
+      vector<int> changed, delayPathAux = vector<int>(n),
+                           jitterPathAux = vector<int>(n),
+                           predecessorsAux = vector<int>(n);
+      vector<bool> notAttendedAux = vector<bool>(n);
+      vector<vector<int>> sub;
+
+      // get the values of this path
+      for (auto k : terminals)
       {
-        bestCand = -1, delay = paramDelay + 1, jitter = paramJitter + 1;
-
-        if (delayPaths[k] < (delayPaths[selected] - paramVariation) ||
-            delayPaths[k] > (delayPaths[selected] + paramVariation))
+        if (k != selected)
         {
+          bestCand = -1, delay = paramDelay + 1, jitter = paramJitter + 1;
 
-          for (auto arc : arcs[k])
+          if (delayPaths[k] < (delayPaths[selected] - paramVariation) ||
+              delayPaths[k] > (delayPaths[selected] + paramVariation))
           {
-            i = arc.j;
-            // Get the first (lowest delay) candidate to move
-            if (i != predecessors[k] && k != predecessors[i])
+
+            for (auto arc : arcs[k])
             {
-              if (delayPaths[i] + arc.delay >= (delayPaths[selected] - paramVariation) &&
-                  delayPaths[i] + arc.delay <= (delayPaths[selected] + paramVariation))
+              i = arc.j;
+              // Get the first (lowest delay) candidate to move
+              if (i != predecessors[k] && k != predecessors[i])
               {
-                bestCand = i;
-                delay = delayPaths[i] + arc.delay, jitter = jitterPaths[i] + arc.jitter;
-                break;
-              }
-            }
-          }
-
-          if (bestCand != -1)
-          {
-            // create the temporary vectors
-            losts = 0;
-            notAttended[k] = false, canMove = true;
-            sub = vector<vector<int>>(n, vector<int>());
-            changed = vector<int>();
-
-            for (i = 0; i < n; i++)
-            {
-              delayPathAux[i] = delayPaths[i], jitterPathAux[i] = jitterPaths[i];
-              predecessorsAux[i] = predecessors[i], notAttendedAux[i] = notAttended[i];
-              sub[predecessors[i]].push_back(i);
-            }
-
-            // Evaluate the move
-            diffDelay = delay - delayPathAux[k], diffJitter = jitter - jitterPathAux[k];
-            delayPathAux[k] = delay, jitterPathAux[k] = jitter;
-            predecessorsAux[k] = bestCand;
-
-            // Propagates the QoS changes
-            changed.push_back(k);
-            while (!changed.empty())
-            {
-              actual = changed.back();
-              changed.pop_back();
-
-              for (auto j : sub[actual])
-              {
-                delayPathAux[j] += diffDelay, jitterPathAux[j] += diffJitter;
-                if (delayPathAux[j] > paramDelay || jitterPathAux[j] > paramJitter)
-                  notAttendedAux[j] = true;
-                else
-                  notAttendedAux[j] = false;
-                changed.push_back(j);
+                if (delayPaths[i] + arc.delay >= (delayPaths[selected] - paramVariation) &&
+                    delayPaths[i] + arc.delay <= (delayPaths[selected] + paramVariation))
+                {
+                  bestCand = i;
+                  delay = delayPaths[i] + arc.delay, jitter = jitterPaths[i] + arc.jitter;
+                }
               }
             }
 
-            for (auto terminal : terminals)
-              if (!notAttended[terminal] && notAttendedAux[terminal])
-                losts += 1;
-              else if (notAttended[terminal] && !notAttendedAux[terminal])
-                losts -= 1;
+            if (bestCand != -1)
+            {
+              // create the temporary vectors
+              losts = 0;
+              notAttended[k] = false, canMove = true;
+              sub = vector<vector<int>>(n, vector<int>());
+              changed = vector<int>();
 
-            if (losts < 0)
               for (i = 0; i < n; i++)
               {
-                delayPaths[i] = delayPathAux[i], jitterPaths[i] = jitterPathAux[i],
-                predecessors[i] = predecessorsAux[i], notAttended[i] = notAttendedAux[i];
+                delayPathAux[i] = delayPaths[i], jitterPathAux[i] = jitterPaths[i];
+                predecessorsAux[i] = predecessors[i], notAttendedAux[i] = notAttended[i];
+                sub[predecessors[i]].push_back(i);
               }
+
+              // Evaluate the move
+              diffDelay = delay - delayPathAux[k], diffJitter = jitter - jitterPathAux[k];
+              delayPathAux[k] = delay, jitterPathAux[k] = jitter;
+              predecessorsAux[k] = bestCand;
+
+              // Propagates the QoS changes
+              changed.push_back(k);
+              while (!changed.empty())
+              {
+                actual = changed.back();
+                changed.pop_back();
+
+                for (auto j : sub[actual])
+                {
+                  delayPathAux[j] += diffDelay, jitterPathAux[j] += diffJitter;
+                  if (delayPathAux[j] > paramDelay || jitterPathAux[j] > paramJitter)
+                    notAttendedAux[j] = true;
+                  else
+                    notAttendedAux[j] = false;
+                  changed.push_back(j);
+                }
+              }
+
+              for (auto terminal : terminals)
+                if (!notAttended[terminal] && notAttendedAux[terminal])
+                  losts += 1;
+                else if (notAttended[terminal] && !notAttendedAux[terminal])
+                  losts -= 1;
+
+              if (losts < 0)
+                for (i = 0; i < n; i++)
+                {
+                  delayPaths[i] = delayPathAux[i], jitterPaths[i] = jitterPathAux[i],
+                  predecessors[i] = predecessorsAux[i], notAttended[i] = notAttendedAux[i];
+                }
+            }
           }
         }
       }
@@ -346,14 +356,14 @@ double MSDecoder::decode(const std::vector<double> &chromosome)
   }
 
   // Delay variation penalty
-  int penalty = 0, toUse = 0;
+  int penalty = 0, toUse = 0, maxDiff = 0;
   for (auto k : terminals)
   {
     toUse = -1;
     if (delayPaths[k] < smallest)
-      toUse = smallest - delayPaths[k];
+      toUse = larggest - delayPaths[k];
     else if (delayPaths[k] > larggest)
-      toUse = delayPaths[k] - larggest;
+      toUse = delayPaths[k] - smallest;
 
     if (toUse > paramVariation)
     {
@@ -364,20 +374,17 @@ double MSDecoder::decode(const std::vector<double> &chromosome)
   }
 
   count = terminals.size() - maxi;
-  alpha = (minMetric[0] + minMetric[1] + minMetric[2]) / 3; //*max_element(minMetric.begin(), minMetric.end());
+  // alpha = *min_element(minMetric.begin(), minMetric.end());
+  alpha = (minMetric[0] + minMetric[1] + minMetric[2]) / 3;
 
   if (count < incumbent)
   {
     // cout << "Delay: " << minMetric[0] << ", Jitter: " << minMetric[1] << ", Variation: " << minMetric[2] << endl;
     incumbent = count;
-    // cout << "Value: " << (count * s) + alpha << ", FO: " << incumbent << endl;
-    /*
-      ofstream file;
-      file.open("solution.sol");
-      for (i = 0; i < n; i++) {
-      file << predecessors[i] << " " << i << endl;
-      }
-      file.close();*/
+    // if (!checkSolution(predecessors, delayPaths, jitterPaths, notAttended, count))
+    // {
+    //   cout << "O PORRA" << endl;
+    // }
   }
 
   // Save this arborescence in the map
@@ -393,7 +400,6 @@ double MSDecoder::decode(const std::vector<double> &chromosome)
     }
   }
   visitedArbs[strHash] = count * terminals.size() + alpha;
-
   // Return the value
   return (count * terminals.size() + alpha);
 }
@@ -471,4 +477,50 @@ void MSDecoder::loadBias(string instance, bool ls)
 double MSDecoder::getBias(int i) const
 {
   return mapping[i];
+}
+
+bool MSDecoder::checkSolution(vector<int> &predecessors, vector<int> &delayPaths, vector<int> &jitterPaths, vector<bool> &notAttended, int notAttendedTerm)
+{
+  int actual, jitter, delay;
+  for (auto k : DuS)
+  {
+    actual = k, jitter = 0, delay = 0;
+    while (actual != root)
+    {
+      jitter += costs[predecessors[actual]][actual].second,
+          delay += costs[predecessors[actual]][actual].first;
+      actual = predecessors[actual];
+    }
+    if ((delayPaths[k] != delay || jitterPaths[k] != jitter) ||
+        ((delay > paramDelay || jitter > paramJitter) && (!notAttended[k])))
+    {
+      return false;
+    }
+  }
+
+  // Computing the difference in the metrics to make terminals serviced
+  vector<int> delays = vector<int>();
+  for (auto k : terminals)
+    if (!notAttended[k])
+      delays.push_back(delayPaths[k]);
+
+  // Applying the selection using the delay variation constraints
+  sort(delays.begin(), delays.end());
+  int actMax = 0, p2 = 0, maxi = 0, fd, larggest = 0, smallest = 0;
+  for (int i = 0; i < delays.size(); i++)
+  {
+    fd = delays[i];
+
+    while (delays[p2] <= fd + paramVariation && p2 < delays.size())
+      p2++;
+
+    if ((p2 - i) > maxi)
+    {
+      maxi = (p2 - i);
+      larggest = delays[p2];
+      smallest = delays[i];
+    }
+  }
+
+  return notAttendedTerm != (terminals.size() - maxi) ? false : true;
 }

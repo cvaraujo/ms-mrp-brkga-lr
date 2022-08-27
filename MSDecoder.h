@@ -53,7 +53,7 @@ public:
   vector<vector<bool>> removeArcs;
   vector<double> mapping;
   map<string, double> visitedArbs;
-  float localSearchChance = 0.2;
+  float localSearchChance = 0.1;
 
   MSDecoder();
 
@@ -76,6 +76,8 @@ public:
   double getBias(int i) const;
 
   double already_computed();
+
+  bool checkSolution(vector<int> &predecessors, vector<int> &delayPaths, vector<int> &jitterPaths, vector<bool> &notAttended, int notAttendedTerm);
 };
 
 #endif
